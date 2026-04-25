@@ -4,12 +4,8 @@ import java.io.PrintStream;
 
 public class ProgressConsolePrinter {
 
+    private static final int BAR_WIDTH = 32;
     private static final PrintStream OUT = System.out;
-
-    private static String computeFormatString(int completed, int total) {
-        int maxDigitCount = Math.max(1, (int) Math.ceil(Math.log10(Integer.max(completed, total))));
-        return "\r%s [%s%s] %" + maxDigitCount + "d/%d (%3.0f%%)";
-    }
 
     private final String prefix;
 
@@ -17,15 +13,35 @@ public class ProgressConsolePrinter {
         this.prefix = prefix;
     }
 
-    /**
-     * PREFIX [#########################---------------------------------------------------------------------------]  64/250 ( 26%)
-     */
-    public void update(int completed, int total) {
-        double percentage = (double)completed/total * 100;
-        OUT.printf(computeFormatString(completed, total), prefix, "#".repeat((int) percentage), "-".repeat(100 - (int) percentage), completed, total, percentage);
-    }
-
     public void newLine() {
         OUT.println();
     }
+
+    /**
+     * PREFIX [#########--------------]  64/250 ( 26%)
+     */
+    public void update(int completed, int total) {
+        OUT.print("\r\033[K"); // clear line
+        String progressString = computeFormatString(completed, total);
+        OUT.print(progressString);
+        OUT.flush();
+    }
+
+    private String computeFormatString(int completed, int total) {
+        double ratio = (double) completed / total;
+
+        int filledCount = (int) Math.round(ratio * BAR_WIDTH);
+        // the width (number of digits) needed to neatly align completed and total in the progress output
+        int maxDigitCount = Math.max(1, (int) Math.floor(Math.log10(Math.max(completed, total))) + 1);
+
+        return ("%s [%s%s] %" + maxDigitCount + "d/%d (%3.0f%%)").formatted(
+                prefix,
+                "#".repeat(filledCount),
+                "-".repeat(BAR_WIDTH - filledCount),
+                completed,
+                total,
+                ratio * 100
+        );
+    }
+
 }
