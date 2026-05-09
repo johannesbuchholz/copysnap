@@ -60,7 +60,7 @@ public class Main {
     ) {
         Path cwd = Path.of(System.getProperty("user.dir"));
         Path sourceDirResolved = resolvePathToCwd(source);
-        Context context = Contexts.createNew(sourceDirResolved, cwd, ignore);
+        Context context = Contexts.createNew(sourceDirResolved, cwd, Objects.requireNonNull(ignore));
         Contexts.write(context);
         CONSOLE_PRINTER.consume(Level.INFO, "Initialised context at " + context.getContextHome());
 
