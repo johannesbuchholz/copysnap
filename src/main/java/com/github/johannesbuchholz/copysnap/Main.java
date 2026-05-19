@@ -34,9 +34,9 @@ public class Main {
 
     private static final String APP_NAME = ".copysnap";
     private static final String APP_PROPERTIES_FILENAME = "copysnap.properties";
-    private static final Path APP_HOME_DIR =  Path.of(System.getProperty("user.home")).resolve(APP_NAME);
+    private static final Path APP_HOME_DIR = Path.of(System.getProperty("user.home")).resolve(APP_NAME);
     private static final Path APP_PROPERTIES_PATH = APP_HOME_DIR.resolve(APP_PROPERTIES_FILENAME);
-    
+
     private static final String CURRENT_CONTEXT_PROPERTY_NAME = "contexts.current";
     private static final Properties APP_PROPERTIES = getAppProperties();
 
@@ -45,11 +45,12 @@ public class Main {
     private static Context latestContext = null;
 
     public static void main(String[] args) {
-            CliHats.get(Main.class).execute(args);
+        CliHats.get(Main.class).execute(args);
     }
 
     /**
      * Initialises a new CopySnap context sourcing the specified directory.
+     *
      * @param source The directory to take snapshots from.
      * @param ignore Glob patterns of files to exclude from this context. Such files are not part of any snapshot.
      */
@@ -70,7 +71,8 @@ public class Main {
 
     /**
      * Loads a context.
-     * @param path The path to the home directory of a context or its properties file.
+     *
+     * @param path  The path to the home directory of a context or its properties file.
      * @param reset If true, loads only essential parameters from the properties at the specified path. Other parameters are reset.
      *              Calling this method with this option removes the latest file system state and should be followed up by 'recompute'.
      *              This is useful for resolving compatibility issues between versions of context.properties files and CopySnap.
@@ -82,10 +84,10 @@ public class Main {
     ) {
         Path searchPathResolved = resolvePathToCwd(path);
         Context context;
-        if(reset) {
+        if (reset) {
             context = Contexts.loadMinimal(searchPathResolved);
             Contexts.write(context);
-        } else  {
+        } else {
             context = Contexts.load(searchPathResolved);
         }
         CONSOLE_PRINTER.consume(Level.INFO, "Loaded context " + context.getContextHome());
@@ -116,6 +118,7 @@ public class Main {
     /**
      * Creates a new differential snapshot using the currently loaded context. Files that did not change compared to the
      * latest snapshot will only reference the respective file in that snapshot instead of creating a copy of that file.
+     *
      * @param copy If true, the new snapshot will contain full copies of each file even if the respective file did not change.
      */
     @Command
@@ -140,6 +143,7 @@ public class Main {
      * Computes the file state of a specified directory and saves it as the latest file system state to the
      * current context.
      * Use this method to repair a broken or lost file system state of a previous snapshot.
+     *
      * @param directory The directory to compute a new file state of.
      */
     @Command
@@ -242,7 +246,7 @@ public class Main {
             resolved = cwd.resolve(path).normalize();
         else
             resolved = path;
-        return resolved ;
+        return resolved;
     }
 
 }
