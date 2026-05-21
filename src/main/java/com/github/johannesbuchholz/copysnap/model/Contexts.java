@@ -2,7 +2,7 @@ package com.github.johannesbuchholz.copysnap.model;
 
 import com.github.johannesbuchholz.copysnap.Main;
 import com.github.johannesbuchholz.copysnap.model.state.FileSystemState;
-import com.github.johannesbuchholz.copysnap.model.state.FileSystemStateIO;
+import com.github.johannesbuchholz.copysnap.model.state.FileSystemStates;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,7 +19,6 @@ public class Contexts {
 
     static final String CONTEXT_PROPERTIES_FILE_NAME = "context.properties";
     private static final String COPYSNAP_HOME_DIR_POSTFIX = "copysnap";
-    private static final String LATEST_FILE_STATE_FILE_NAME = ".latest";
 
     private Contexts() {
         // do not instantiate
@@ -94,18 +93,24 @@ public class Contexts {
 
         FileSystemState latest = context.getLatestFileSystemState();
         if (latest != null) {
-            Path latestStateFile = properties.snapshotsHomeDir().resolve(LATEST_FILE_STATE_FILE_NAME);
-            FileSystemStateIO.write(latest, latestStateFile);
+            Path latestStateFile = properties.snapshotsHomeDir().resolve(".latest");
+            FileSystemStates.write(latest, latestStateFile);
+        }
+    }
+
+    private static Optional<Path> findLatestFileIn(Context context) {
+        try (Stream<Path> paths = Files.walk(context.getProperties().snapshotsHomeDir(), 1)){
+            return paths
+                    .filter(p -> p.getFileName().startsWith(".latest") && Files.isRegularFile(p))
+                    .findAny();
+        } catch (IOException e) {
+            throw new UncheckedIOException("Could not walk over snapshot dir at %s: %s".formatted(context.getProperties().snapshotsHomeDir(), e.getMessage()), e);
         }
     }
 
     static Optional<FileSystemState> loadLatestSnapshotOf(Context context) {
-        Path latestSnapshotFile = context.getProperties().snapshotsHomeDir().resolve(Contexts.LATEST_FILE_STATE_FILE_NAME);
-        if (!Files.isRegularFile(latestSnapshotFile)) {
-            return Optional.empty();
-        }
-        FileSystemState fss = FileSystemStateIO.read(latestSnapshotFile);
-        return Optional.of(fss);
+        return findLatestFileIn(context)
+                .map(FileSystemStates::read);
     }
 
     private static Optional<Properties> findAndReadProperties(Path path) {

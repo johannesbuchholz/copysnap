@@ -14,7 +14,7 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-final class TextFileSystemStateIO {
+final class TextFileSystemStateIO implements FileSystemStateIO {
 
     private static final String FIELD_SERDE_SEPARATOR = ";";
     private static final Pattern FILE_STATE_STRING_PATTERN = Pattern.compile("^(?<checksum>[^;]+);(?<modified>[^;]+);(?<path>(?s).+)$");
@@ -29,7 +29,7 @@ final class TextFileSystemStateIO {
      * #HASH & #PATH
      * </p>
      */
-    public static FileSystemState read(Path textFile) {
+    public FileSystemState read(Path textFile) {
         FileSystemState.Builder builder = FileSystemState.builder();
         Optional<String> nextLineOpt;
         try (InputStream is = Files.newInputStream(textFile)) {
@@ -63,7 +63,7 @@ final class TextFileSystemStateIO {
         return Optional.empty();
     }
 
-    public static void write(FileSystemState fss, Path destination) {
+    public void write(FileSystemState fss, Path destination) {
         try (OutputStream fileSystemStateOs = Files.newOutputStream(destination, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
              OutputStreamWriter writer = new OutputStreamWriter(fileSystemStateOs)
         ) {

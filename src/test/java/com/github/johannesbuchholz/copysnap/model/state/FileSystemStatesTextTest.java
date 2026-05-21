@@ -15,11 +15,13 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class FileSystemStateIOTextTest {
+class FileSystemStatesTextTest {
 
     private static final int HASH_SIZE = 16;
     private static final int MAX_PATH_LENGTH = 8;
     private static final Random RNG = new Random();
+
+    private final TextFileSystemStateIO textFileSystemStateIO = new TextFileSystemStateIO();
 
     @TempDir
     Path tempDir;
@@ -31,11 +33,11 @@ class FileSystemStateIOTextTest {
         FileSystemState fss = FileSystemState.builder().add(fs).build();
 
         // serialization
-        TextFileSystemStateIO.write(fss, tempFile);
+        textFileSystemStateIO.write(fss, tempFile);
         assertTrue(Files.exists(tempFile));
 
         // deserialization
-        FileSystemState fssRead = TextFileSystemStateIO.read(tempFile);
+        FileSystemState fssRead = textFileSystemStateIO.read(tempFile);
         assertEquals(fss.getStatesByPath(), fssRead.getStatesByPath());
     }
 
@@ -46,11 +48,11 @@ class FileSystemStateIOTextTest {
         FileSystemState fss = FileSystemState.builder().add(fs).build();
 
         // serialization
-        TextFileSystemStateIO.write(fss, tempFile);
+        textFileSystemStateIO.write(fss, tempFile);
         assertTrue(Files.exists(tempFile));
 
         // deserialization
-        FileSystemState fssRead = TextFileSystemStateIO.read(tempFile);
+        FileSystemState fssRead = textFileSystemStateIO.read(tempFile);
         assertEquals(fss.getStatesByPath(), fssRead.getStatesByPath());
     }
 
@@ -61,11 +63,11 @@ class FileSystemStateIOTextTest {
         FileSystemState fss = FileSystemState.builder().add(fs).build();
 
         // serialization
-        TextFileSystemStateIO.write(fss, tempFile);
+        textFileSystemStateIO.write(fss, tempFile);
         assertTrue(Files.exists(tempFile));
 
         // deserialization
-        FileSystemState fssRead = TextFileSystemStateIO.read(tempFile);
+        FileSystemState fssRead = textFileSystemStateIO.read(tempFile);
         assertEquals(fss.getStatesByPath(), fssRead.getStatesByPath());
     }
 
