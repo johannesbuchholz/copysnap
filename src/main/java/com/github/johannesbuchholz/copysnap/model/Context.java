@@ -3,7 +3,6 @@ package com.github.johannesbuchholz.copysnap.model;
 import com.github.johannesbuchholz.copysnap.logging.*;
 import com.github.johannesbuchholz.copysnap.model.state.FileState;
 import com.github.johannesbuchholz.copysnap.model.state.FileSystemState;
-import com.github.johannesbuchholz.copysnap.model.state.FileSystemStateIO;
 import com.github.johannesbuchholz.copysnap.service.diffing.FileSystemAccessor;
 import com.github.johannesbuchholz.copysnap.service.diffing.FileSystemDiff;
 import com.github.johannesbuchholz.copysnap.service.diffing.FileSystemDiffService;
@@ -18,10 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.ZonedDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -160,17 +156,17 @@ public class Context extends AbstractLogProducer {
     }
 
     public Context loadLatestSnapshot() {
-        Path latestSnapshotFile = properties.snapshotsHomeDir().resolve(Contexts.LATEST_FILE_STATE_FILE_NAME);
         ZonedDateTime start = ZonedDateTime.now();
-        logTaskStart(Level.INFO, "Loading latest snapshot file system state", start, "from", latestSnapshotFile);
-        if (!Files.isRegularFile(latestSnapshotFile)) {
-            log(Level.INFO, "Could not find latest snapshot at %s. Loading with empty file system state.".formatted(latestSnapshotFile));
+        logTaskStart(Level.INFO, "Loading latest snapshot file system state", start, "from", properties.snapshotsHomeDir());
+        Optional<FileSystemState> latestOpt = Contexts.loadLatestSnapshotOf(this);
+        if (latestOpt.isEmpty()) {
+            log(Level.INFO, "Could not find latest snapshot in %s. Loading with empty file system state.".formatted(properties.snapshotsHomeDir()));
             ContextProperties newProperties = properties.withSnapshotProperties(null);
             return new Context(newProperties, FileSystemState.empty(), logConsumers);
         }
-        FileSystemState fss = FileSystemStateIO.read(latestSnapshotFile);
+        Context loaded =  new Context(properties, latestOpt.get(), logConsumers);
         logTaskEnd(Level.INFO, "Done loading latest snapshot file system state", Duration.between(start, ZonedDateTime.now()));
-        return new Context(properties, fss, logConsumers);
+        return loaded;
     }
 
     /**

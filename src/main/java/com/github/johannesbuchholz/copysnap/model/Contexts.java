@@ -19,7 +19,7 @@ public class Contexts {
 
     static final String CONTEXT_PROPERTIES_FILE_NAME = "context.properties";
     private static final String COPYSNAP_HOME_DIR_POSTFIX = "copysnap";
-    static final String LATEST_FILE_STATE_FILE_NAME = ".latest";
+    private static final String LATEST_FILE_STATE_FILE_NAME = ".latest";
 
     private Contexts() {
         // do not instantiate
@@ -97,6 +97,15 @@ public class Contexts {
             Path latestStateFile = properties.snapshotsHomeDir().resolve(LATEST_FILE_STATE_FILE_NAME);
             FileSystemStateIO.write(latest, latestStateFile);
         }
+    }
+
+    static Optional<FileSystemState> loadLatestSnapshotOf(Context context) {
+        Path latestSnapshotFile = context.getProperties().snapshotsHomeDir().resolve(Contexts.LATEST_FILE_STATE_FILE_NAME);
+        if (!Files.isRegularFile(latestSnapshotFile)) {
+            return Optional.empty();
+        }
+        FileSystemState fss = FileSystemStateIO.read(latestSnapshotFile);
+        return Optional.of(fss);
     }
 
     private static Optional<Properties> findAndReadProperties(Path path) {
