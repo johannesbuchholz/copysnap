@@ -3,6 +3,7 @@ package com.github.johannesbuchholz.copysnap.model;
 import com.github.johannesbuchholz.copysnap.model.state.CheckpointChecksum;
 import com.github.johannesbuchholz.copysnap.model.state.FileState;
 import com.github.johannesbuchholz.copysnap.model.state.FileSystemState;
+import com.github.johannesbuchholz.copysnap.model.state.FileSystemStateIO;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -48,7 +49,7 @@ public class FileSystemStateTest {
         Path tempFile = Files.createTempFile(tmpFilePath, "tmpfile" + System.currentTimeMillis(), ".tmp");
         fst.write(Files.newOutputStream(tempFile));
         long serEnd = System.currentTimeMillis();
-        FileSystemState deserializedFst = FileSystemState.read(Files.newInputStream(tempFile));
+        FileSystemState deserializedFst = FileSystemStateIO.read(tempFile);
         long deEnd = System.currentTimeMillis();
 
         // then

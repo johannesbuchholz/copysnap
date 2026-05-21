@@ -3,6 +3,7 @@ package com.github.johannesbuchholz.copysnap.model;
 import com.github.johannesbuchholz.copysnap.logging.*;
 import com.github.johannesbuchholz.copysnap.model.state.FileState;
 import com.github.johannesbuchholz.copysnap.model.state.FileSystemState;
+import com.github.johannesbuchholz.copysnap.model.state.FileSystemStateIO;
 import com.github.johannesbuchholz.copysnap.service.diffing.FileSystemAccessor;
 import com.github.johannesbuchholz.copysnap.service.diffing.FileSystemDiff;
 import com.github.johannesbuchholz.copysnap.service.diffing.FileSystemDiffService;
@@ -11,7 +12,6 @@ import com.github.johannesbuchholz.copysnap.service.diffing.copy.PlainCopyAction
 import com.github.johannesbuchholz.copysnap.util.TimeUtils;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
@@ -168,18 +168,14 @@ public class Context extends AbstractLogProducer {
             ContextProperties newProperties = properties.withSnapshotProperties(null);
             return new Context(newProperties, FileSystemState.empty(), logConsumers);
         }
-        FileSystemState fss;
-        try (InputStream is = Files.newInputStream(latestSnapshotFile)) {
-            fss = FileSystemState.read(is);
-        } catch (IOException e) {
-            throw new ContextIOException("Could not read latest FileSystemState from %s: %s".formatted(latestSnapshotFile, e.getMessage()), e);
-        }
+        FileSystemState fss = FileSystemStateIO.read(latestSnapshotFile);
         logTaskEnd(Level.INFO, "Done loading latest snapshot file system state", Duration.between(start, ZonedDateTime.now()));
         return new Context(properties, fss, logConsumers);
     }
 
     /**
      * Intended to reproduce a file system state of an older snapshot or to repair a broken file system state.
+     *
      * @param sourceDir The directory to compute the new state from.
      */
     public Context recomputeFileSystemState(Path sourceDir) {

@@ -1,8 +1,9 @@
 package com.github.johannesbuchholz.copysnap.model.state;
 
-import java.io.*;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -22,47 +23,11 @@ public class FileSystemState {
         return new Builder(existingState.statesByPath);
     }
 
-    /**
-     * Reads a file of the form
-     * <p>
-     * #ROOT_PATH
-     * #DATE
-     * #HASH & PATH
-     * ...
-     * #HASH & #PATH
-     * </p>
-     */
-    public static FileSystemState read(InputStream is) throws IOException {
-        FileSystemState.Builder builder = FileSystemState.builder();
-        Optional<String> nextLineOpt;
-        while ((nextLineOpt = readUntilNextNull(is)).isPresent()) {
-            FileState fs = FileState.deserialize(nextLineOpt.get());
-            builder.add(fs);
-        }
-        return builder.build();
-    }
-
-    private static Optional<String> readUntilNextNull(InputStream is) throws IOException {
-        ByteBuffer bb = ByteBuffer.allocate(1024);
-        int nextByte;
-        while ((nextByte = is.read()) > -1) {
-           if (nextByte == Character.MIN_VALUE) {
-               // skip new line character
-               long ignored = is.skip(1);
-               ByteBuffer slice = bb.slice(0, bb.position());
-               return Optional.of(StandardCharsets.UTF_8.decode(slice).toString());
-           }
-           if (bb.position() >= bb.capacity()) {
-               ByteBuffer bbNew = ByteBuffer.allocate(bb.capacity() * 2);
-               bb = bbNew.put(bb.array());
-           }
-           bb.put((byte) nextByte);
-        }
-        // the stream is exhausted. We do not return the buffer since no null byte has been found.
-        return Optional.empty();
-    }
-
     private final Map<Path, FileState> statesByPath;
+
+    Map<Path, FileState> getStatesByPath() {
+        return Map.copyOf(statesByPath);
+    }
 
     private FileSystemState(Map<Path, FileState> statesByPath) {
         this.statesByPath = statesByPath;
