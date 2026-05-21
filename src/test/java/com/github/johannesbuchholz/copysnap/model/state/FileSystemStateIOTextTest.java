@@ -1,8 +1,10 @@
 package com.github.johannesbuchholz.copysnap.model.state;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.ByteArrayInputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
@@ -11,47 +13,60 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class FileStateTest {
+class FileSystemStateIOTextTest {
 
     private static final int HASH_SIZE = 16;
     private static final int MAX_PATH_LENGTH = 8;
     private static final Random RNG = new Random();
 
+    @TempDir
+    Path tempDir;
+
     @Test
     public void serde() {
-        // byte is int from -128 to 127 = 255 positions
+        Path tempFile = tempDir.resolve(UUID.randomUUID() + "-serde-test.txt");
         FileState fs = generateRandomFileState();
+        FileSystemState fss = FileSystemState.builder().add(fs).build();
 
-        String s = fs.serialize();
+        // serialization
+        TextFileSystemStateIO.write(fss, tempFile);
+        assertTrue(Files.exists(tempFile));
 
-        FileState fsParsed = FileState.deserialize(s);
-
-        assertEquals(fs, fsParsed);
+        // deserialization
+        FileSystemState fssRead = TextFileSystemStateIO.read(tempFile);
+        assertEquals(fss.getStatesByPath(), fssRead.getStatesByPath());
     }
 
     @Test
     public void serde_withNewLineInPathName() {
-        // byte is int from -128 to 127 = 255 positions
+        Path tempFile = tempDir.resolve(UUID.randomUUID() + "-serde-test.txt");
         FileState fs = new FileState(Path.of("a/b/c/x\ny\nz"), Instant.now(), new CheckpointChecksum(List.of(0L)));
+        FileSystemState fss = FileSystemState.builder().add(fs).build();
 
-        String s = fs.serialize();
+        // serialization
+        TextFileSystemStateIO.write(fss, tempFile);
+        assertTrue(Files.exists(tempFile));
 
-        FileState fsParsed = FileState.deserialize(s);
-
-        assertEquals(fs, fsParsed);
+        // deserialization
+        FileSystemState fssRead = TextFileSystemStateIO.read(tempFile);
+        assertEquals(fss.getStatesByPath(), fssRead.getStatesByPath());
     }
 
     @Test
     public void serde_withDelimiterInPathName() {
-        // byte is int from -128 to 127 = 255 positions
+        Path tempFile = tempDir.resolve(UUID.randomUUID() + "-serde-test.txt");
         FileState fs = new FileState(Path.of("a/b/c/xyz" + FileState.FIELD_SERDE_SEPARATOR + "bli bla blubb"), Instant.now(), new CheckpointChecksum(List.of(0L)));
+        FileSystemState fss = FileSystemState.builder().add(fs).build();
 
-        String s = fs.serialize();
+        // serialization
+        TextFileSystemStateIO.write(fss, tempFile);
+        assertTrue(Files.exists(tempFile));
 
-        FileState fsParsed = FileState.deserialize(s);
-
-        assertEquals(fs, fsParsed);
+        // deserialization
+        FileSystemState fssRead = TextFileSystemStateIO.read(tempFile);
+        assertEquals(fss.getStatesByPath(), fssRead.getStatesByPath());
     }
 
     /**

@@ -1,9 +1,5 @@
 package com.github.johannesbuchholz.copysnap.model.state;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -61,27 +57,6 @@ public class FileSystemState {
 
     public int fileCount() {
         return statesByPath.size();
-    }
-
-    public void write(OutputStream os) throws IOException {
-        try (OutputStreamWriter writer = new OutputStreamWriter(os)) {
-            for (FileState fileState : statesByPath.values()) {
-                writeLine(writer, fileState.serialize());
-            }
-            writer.flush();
-        }
-    }
-
-    /**
-     * Each line is finished by {@link Character#MIN_VALUE}.
-     * When parsing the file, line-wise reading could lead to errors since the path-strings may contain new-line
-     * characters. To solve that issue, we decide to put "anchors" at the end of each line.
-     * We also put new-line characters between each entry, to maintain human readability.
-     */
-    private void writeLine(Writer bw, String s) throws IOException {
-        bw.write(s);
-        bw.write(Character.MIN_VALUE);
-        bw.write(System.lineSeparator());
     }
 
     public Set<Path> paths() {

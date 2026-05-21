@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -62,12 +63,16 @@ final class TextFileSystemStateIO {
         return Optional.empty();
     }
 
-    public void write(FileSystemState fss, OutputStream os) throws IOException {
-        try (OutputStreamWriter writer = new OutputStreamWriter(os)) {
+    public static void write(FileSystemState fss, Path destination) {
+        try (OutputStream fileSystemStateOs = Files.newOutputStream(destination, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+             OutputStreamWriter writer = new OutputStreamWriter(fileSystemStateOs)
+        ) {
             for (FileState fileState : fss.getStatesByPath().values()) {
                 writeLine(writer, serialize(fileState));
             }
             writer.flush();
+        } catch (IOException e) {
+            throw new ContextIOException("Could not write latest file states to %s: %s".formatted(destination, e.getMessage()), e);
         }
     }
 
@@ -83,7 +88,7 @@ final class TextFileSystemStateIO {
         bw.write(System.lineSeparator());
     }
 
-    private String serialize(FileState fileState) {
+    private static String serialize(FileState fileState) {
         return String.join(FIELD_SERDE_SEPARATOR,
                 List.of(
                         fileState.checksum().serialize(),

@@ -8,12 +8,21 @@ public class FileSystemStateIO {
         // do not instantiate
     }
 
-    public static FileSystemState read(Path fssFile) {
-        String fileName = fssFile.getFileName().toString();
+    public static FileSystemState read(Path fssSourceFile) {
+        String fileName = fssSourceFile.getFileName().toString();
         if (fileName.endsWith(".db")) {
-            throw new IllegalArgumentException("Not yet supported: " + fssFile);
+            throw new IllegalArgumentException("Not yet supported: " + fssSourceFile);
         } else {
-            return TextFileSystemStateIO.read(fssFile);
+            return TextFileSystemStateIO.read(fssSourceFile);
+        }
+    }
+
+    public static void write(FileSystemState fss, Path fssDestination) {
+        String fileName = fssDestination.getFileName().toString();
+        if (fileName.endsWith(".db")) {
+            throw new IllegalArgumentException("Not yet supported: " + fssDestination);
+        } else {
+            TextFileSystemStateIO.write(fss, fssDestination);
         }
     }
 
