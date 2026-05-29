@@ -93,8 +93,8 @@ public class Contexts {
 
         FileSystemState latest = context.getLatestFileSystemState();
         if (latest != null) {
-            Path latestStateFile = properties.snapshotsHomeDir().resolve(".latest");
-            FileSystemStates.write(latest, latestStateFile);
+            Path latestStateFileDest = properties.snapshotsHomeDir().resolve(".latest.db");
+            FileSystemStates.write(latest, latestStateFileDest);
         }
     }
 
