@@ -7,10 +7,7 @@ import com.github.johannesbuchholz.copysnap.model.state.FileState;
 import com.github.johannesbuchholz.copysnap.model.state.FileSystemState;
 
 import java.io.IOException;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Path;
-import java.nio.file.PathMatcher;
-import java.nio.file.SimpleFileVisitor;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Duration;
 import java.time.Instant;
@@ -37,6 +34,9 @@ public class FileSystemDiffService extends AbstractLogProducer {
      * @param sourceRoot The root object to take a snapshot from.
      */
     public FileSystemDiff computeDiff(Root sourceRoot, FileSystemState oldSystemState, List<String> excludeGlobPatterns) throws IOException {
+        if (!Files.isReadable(sourceRoot.pathToRootDir())) {
+            throw new IllegalStateException("Source root is not a readable: " + sourceRoot.pathToRootDir());
+        }
         ZonedDateTime start = ZonedDateTime.now();
         logTaskStart(Level.INFO, "Computing file differences", start, "at", sourceRoot.pathToRootDir());
 

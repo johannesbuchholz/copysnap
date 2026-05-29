@@ -175,6 +175,9 @@ public class Context extends AbstractLogProducer {
      * @param sourceDir The directory to compute the new state from.
      */
     public Context recomputeFileSystemState(Path sourceDir) {
+        if (!Files.isReadable(sourceDir)) {
+            throw new IllegalStateException("Source dir is not a readable: " + sourceDir);
+        }
         Root rootToComputeStateFrom = Root.from(sourceDir);
         ZonedDateTime start = ZonedDateTime.now();
         logTaskStart(Level.INFO, "Recomputing file system state", start, "from", rootToComputeStateFrom.pathToRootDir());
