@@ -4,7 +4,9 @@ import java.nio.file.Path;
 
 public class FileSystemStates {
 
+    /** Legacy */
     private static final FileSystemStateIO TEXT_IO = new TextFileSystemStateIO();
+    private static final FileSystemStateIO SQLITE_IO = new SqliteFileSystemStateIO();
 
     private FileSystemStates() {
         // do not instantiate
@@ -12,20 +14,24 @@ public class FileSystemStates {
 
     public static FileSystemState read(Path fssSourceFile) {
         String fileName = fssSourceFile.getFileName().toString();
+        FileSystemStateIO io;
         if (fileName.endsWith(".db")) {
-            throw new IllegalArgumentException("Not yet supported: " + fssSourceFile);
+            io = SQLITE_IO;
         } else {
-            return TEXT_IO.read(fssSourceFile);
+            io = TEXT_IO;
         }
+        return io.read(fssSourceFile);
     }
 
     public static void write(FileSystemState fss, Path fssDestination) {
         String fileName = fssDestination.getFileName().toString();
+        FileSystemStateIO io;
         if (fileName.endsWith(".db")) {
-            throw new IllegalArgumentException("Not yet supported: " + fssDestination);
+            io = SQLITE_IO;
         } else {
-            TEXT_IO.write(fss, fssDestination);
+            io = TEXT_IO;
         }
+        io.write(fss, fssDestination);
     }
 
 }
