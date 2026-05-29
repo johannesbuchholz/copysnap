@@ -28,7 +28,7 @@ public class ProgressConsolePrinter {
     }
 
     private String computeFormatString(int completed, int total) {
-        double ratio = (double) completed / total;
+        double ratio = total < 1 ? 1 : (double) completed / total;
 
         int filledCount = (int) Math.round(ratio * BAR_WIDTH);
         // the width (number of digits) needed to neatly align completed and total in the progress output
