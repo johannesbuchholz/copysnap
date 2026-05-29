@@ -7,7 +7,7 @@ import java.nio.file.Path;
  */
 interface FileSystemStateIO {
 
-    FileSystemState read(Path textFile);
+    FileSystemState read(Path sourceFile);
 
     void write(FileSystemState fss, Path destination);
 

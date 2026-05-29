@@ -29,16 +29,17 @@ final class TextFileSystemStateIO implements FileSystemStateIO {
      * #HASH & #PATH
      * </p>
      */
-    public FileSystemState read(Path textFile) {
+    @Override
+    public FileSystemState read(Path sourceFile) {
         FileSystemState.Builder builder = FileSystemState.builder();
         Optional<String> nextLineOpt;
-        try (InputStream is = Files.newInputStream(textFile)) {
+        try (InputStream is = Files.newInputStream(sourceFile)) {
             while ((nextLineOpt = readUntilNextNull(is)).isPresent()) {
                 FileState fs = deserialize(nextLineOpt.get());
                 builder.add(fs);
             }
         } catch (IOException e) {
-            throw new ContextIOException("Could not read FileSystemState from %s: %s".formatted(textFile, e.getMessage()), e);
+            throw new ContextIOException("Could not read FileSystemState from %s: %s".formatted(sourceFile, e.getMessage()), e);
         }
         return builder.build();
     }
@@ -63,11 +64,12 @@ final class TextFileSystemStateIO implements FileSystemStateIO {
         return Optional.empty();
     }
 
+    @Override
     public void write(FileSystemState fss, Path destination) {
         try (OutputStream fileSystemStateOs = Files.newOutputStream(destination, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
              OutputStreamWriter writer = new OutputStreamWriter(fileSystemStateOs)
         ) {
-            for (FileState fileState : fss.getStatesByPath().values()) {
+            for (FileState fileState : fss.getFileStates()) {
                 writeLine(writer, serialize(fileState));
             }
             writer.flush();

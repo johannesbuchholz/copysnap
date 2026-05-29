@@ -21,8 +21,8 @@ public class FileSystemState {
 
     private final Map<Path, FileState> statesByPath;
 
-    Map<Path, FileState> getStatesByPath() {
-        return Map.copyOf(statesByPath);
+    Collection<FileState> getFileStates() {
+        return statesByPath.values();
     }
 
     private FileSystemState(Map<Path, FileState> statesByPath) {
@@ -79,8 +79,9 @@ public class FileSystemState {
         }
 
         public Builder add(FileState fileState) {
-            if (fileState.getPath().isAbsolute())
+            if (fileState.getPath().isAbsolute()) {
                 throw new IllegalArgumentException("Can not add absolute path: " + fileState.getPath());
+            }
             statesByPath.put(fileState.getPath(), fileState);
             return this;
         }

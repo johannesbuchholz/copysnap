@@ -5,7 +5,6 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
-import java.util.List;
 
 public record FileState(Path path, Instant lastModified, CheckpointChecksum checksum) {
 
@@ -28,8 +27,9 @@ public record FileState(Path path, Instant lastModified, CheckpointChecksum chec
     }
 
     public FileState {
-        if (path.isAbsolute())
+        if (path.isAbsolute()) {
             throw new IllegalArgumentException("Given path is not relative: " + path);
+        }
     }
 
     public Path getPath() {
@@ -42,10 +42,6 @@ public record FileState(Path path, Instant lastModified, CheckpointChecksum chec
 
     public CheckpointChecksum getChecksum() {
         return checksum;
-    }
-
-    public String serialize() {
-        return String.join(FIELD_SERDE_SEPARATOR, List.of(checksum.serialize(), lastModified.toString(), path.toString()));
     }
 
 }
