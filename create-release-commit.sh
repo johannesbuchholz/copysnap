@@ -72,10 +72,7 @@ if [[ ${commit} ]]; then
   mvn --quiet clean versions:set -DnewVersion="${version}"
   mvn package
 
-  mkdir -p "releases"
-  cp "target/copysnap-${version}.jar" "releases/copysnap-${version}.jar"
-
-  git add pom.xml "releases/copysnap-${version}.jar"
+  git add pom.xml
   git commit -m "chore: Release ${version}"
   if [[ ${tag} ]]; then
     git tag -a "${version}" -m "Release ${version}"
