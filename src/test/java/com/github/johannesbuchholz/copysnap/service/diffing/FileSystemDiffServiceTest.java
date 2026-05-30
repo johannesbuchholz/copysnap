@@ -328,9 +328,13 @@ public class FileSystemDiffServiceTest {
     @Test
     void test_withIgnoredFiles() throws IOException {
         // given
-        String globPattern1 = "**/*.txt";
-        String globPattern2 = "**.yaml";
-        List<String> paths = List.of("/x/y/z/file.txt", "/y/z/file.txt", "/y/file.txt", "/y/file.txt", "/x/y", "/x/y/blubb.yaml", "/other-file.txt");
+        List<String> paths = List.of(
+                "/x/y/z/file.txt", "/y/z/file.txt", "/y/file.txt",
+                "/y/file.txt", "/x/y", "/x/y/blubb.yaml",
+                "/other-file.txt",
+                "/a/b/timeshift/x/text.json", "/a/b/timeshift/x/y/text_in_y.c", "/a/b/timeshift", "/timeshift/x/y/text_in_y.c",
+                "/a/b/.venv/x/text.json", "/a/b/.venv/x/y/text_in_y.c", "/a/b/.venv", "/.venv/x/y/text_in_y.c"
+        );
 
         // when diff on simple file system state:
         //   fsa returns the given list of paths, existing file system state is empty (all paths are "new")
@@ -343,7 +347,12 @@ public class FileSystemDiffServiceTest {
         FileSystemDiff fileSystemDiff = fileSystemDiffService.computeDiff(
                 Root.from(rootDir),
                 FileSystemState.empty(),
-                List.of(globPattern1, globPattern2));
+                List.of(
+                        "**/*.txt",
+                        "**.yaml",
+                        "timeshift",
+                        ".venv"
+                        ));
 
         // then
         Set<Path> remaining = fileSystemDiff.diffTree().getLeafs().stream()
@@ -352,7 +361,7 @@ public class FileSystemDiffServiceTest {
         assertEquals(Set.of(Path.of("x/y"), Path.of("other-file.txt")), remaining);
 
         assertEquals(
-                new FileSystemDiff.Statistics(2, 0, 0, 0, 5, 0),
+                new FileSystemDiff.Statistics(2, 0, 0, 0, 13, 0),
                 fileSystemDiff.statistics());
     }
 

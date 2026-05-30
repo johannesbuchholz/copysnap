@@ -7,7 +7,9 @@ import com.github.johannesbuchholz.copysnap.model.state.FileState;
 import com.github.johannesbuchholz.copysnap.model.state.FileSystemState;
 
 import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Duration;
 import java.time.Instant;
@@ -19,6 +21,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.regex.Pattern;
 
 public class FileSystemDiffService extends AbstractLogProducer {
 
@@ -34,9 +37,6 @@ public class FileSystemDiffService extends AbstractLogProducer {
      * @param sourceRoot The root object to take a snapshot from.
      */
     public FileSystemDiff computeDiff(Root sourceRoot, FileSystemState oldSystemState, List<String> excludeGlobPatterns) throws IOException {
-        if (!Files.isReadable(sourceRoot.pathToRootDir())) {
-            throw new IllegalStateException("Source root is not a readable: " + sourceRoot.pathToRootDir());
-        }
         ZonedDateTime start = ZonedDateTime.now();
         logTaskStart(Level.INFO, "Computing file differences", start, "at", sourceRoot.pathToRootDir());
 
@@ -79,7 +79,7 @@ public class FileSystemDiffService extends AbstractLogProducer {
         private final FileSystemAccessor fileSystemAccessor;
         private final BiConsumer<Path, IOException> exceptionHandler;
         private final Consumer<String> messageHandler;
-        private final List<PathMatcher> ignorePathMatchers;
+        private final List<PathFilter> ignoreFilters;
 
         private final Set<Path> processedNewFiles = new HashSet<>();
         private final FileSystemNode systemDiffTree = FileSystemNode.getNew();
@@ -88,14 +88,14 @@ public class FileSystemDiffService extends AbstractLogProducer {
                 Root sourceRoot,
                 FileSystemState oldSystemState,
                 FileSystemAccessor fileSystemAccessor,
-                List<String> ignoreGlobPatterns,
+                List<String> ignorePatterns,
                 BiConsumer<Path, IOException> exceptionHandler, Consumer<String> messageHandler) {
             this.sourceRoot = sourceRoot;
             this.oldSystemState = oldSystemState;
             this.fileSystemAccessor = fileSystemAccessor;
             this.exceptionHandler = exceptionHandler;
             this.messageHandler = messageHandler;
-            ignorePathMatchers = ignoreGlobPatterns.stream().map(FileSystemAccessor::getGlobPathMatcher).toList();
+            ignoreFilters = ignorePatterns.stream().map(PathFilter::from).toList();
         }
 
         @Override
@@ -142,7 +142,7 @@ public class FileSystemDiffService extends AbstractLogProducer {
         }
 
         private boolean isExcluded(Path path) {
-            return ignorePathMatchers.stream().anyMatch(matcher -> matcher.matches(path));
+            return ignoreFilters.stream().anyMatch(matcher -> matcher.matches(path));
         }
 
         private FileChangeState determineChange(
@@ -208,4 +208,30 @@ public class FileSystemDiffService extends AbstractLogProducer {
 
     }
 
+    private static final Pattern GLOB_CHARS = Pattern.compile("[*?\\[\\]{}/]");
+
+    /**
+     * We want to allow glob and element-wise exclusion.
+     * The latter with glob is often too clunky ({@code ** /xyz/**} does not match /xyz/abc).
+     */
+    private interface PathFilter {
+
+        boolean matches(Path path);
+
+        static PathFilter from(String pattern) {
+            if (GLOB_CHARS.matcher(pattern).find()) {
+                return FileSystemAccessor.getGlobPathMatcher(pattern)::matches;
+            } else {
+                return path -> {
+                    for (Path elem : path) {
+                        if (elem.toString().equals(pattern)) {
+                            return true;
+                        }
+                    }
+                    return false;
+                };
+            }
+        }
+
+    }
 }
