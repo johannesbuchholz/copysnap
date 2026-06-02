@@ -1,5 +1,7 @@
 package com.github.johannesbuchholz.copysnap.model.state;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.*;
@@ -43,11 +45,18 @@ final class SqliteFileSystemStateIO implements FileSystemStateIO {
 
     @Override
     public void write(FileSystemState fss, Path destination) {
-        if (!destination.isAbsolute() || Files.exists(destination)) {
-            throw new IllegalArgumentException("File at destination already exists or path is not absolute: " + destination);
+        if (!destination.isAbsolute()) {
+            throw new IllegalArgumentException("File path is not absolute: " + destination);
+        } else if (Files.exists(destination)) {
+            // delete file
+            try {
+                Files.deleteIfExists(destination);
+            } catch (IOException e) {
+                throw new UncheckedIOException("Could not delete existing database file: " + destination, e);
+            }
         }
 
-        try (Connection c = DriverManager.getConnection("jdbc:sqlite:" + destination.toUri())) {
+        try (Connection c = DriverManager.getConnection("jdbc:sqlite:" + destination)) {
             // Speed optimizations
             try (Statement stmt = c.createStatement()) {
                 stmt.execute("PRAGMA journal_mode = WAL");

@@ -93,18 +93,45 @@ public class Contexts {
 
         FileSystemState latest = context.getLatestFileSystemState();
         if (latest != null) {
-            Path latestStateFileDest = properties.snapshotsHomeDir().resolve(".latest.db");
-            FileSystemStates.write(latest, latestStateFileDest);
+            ContextProperties.SnapshotProperties snapshotProperties = properties.snapshotProperties();
+            if (snapshotProperties != null) {
+                Path latestStateFileInSnapshotHome = snapshotProperties.rootDirLocation().resolve(".latest.db");
+                FileSystemStates.write(latest, latestStateFileInSnapshotHome);
+            } else {
+                // fallback: write at home
+                Path latestStateFileHome = properties.snapshotsHomeDir().resolve(".latest.bak.db");
+                FileSystemStates.write(latest, latestStateFileHome);
+            }
         }
     }
 
     private static Optional<Path> findLatestFileIn(Context context) {
-        try (Stream<Path> paths = Files.walk(context.getProperties().snapshotsHomeDir(), 1)){
-            return paths
-                    .filter(p -> p.getFileName().startsWith(".latest") && Files.isRegularFile(p))
-                    .findAny();
-        } catch (IOException e) {
-            throw new UncheckedIOException("Could not walk over snapshot dir at %s: %s".formatted(context.getProperties().snapshotsHomeDir(), e.getMessage()), e);
+        // find in latest snapshot dir
+        ContextProperties.SnapshotProperties snapshotProperties = context.getProperties().snapshotProperties();
+        Optional<Path> primaryFind;
+        if (snapshotProperties != null) {
+            try (Stream<Path> paths = Files.list(snapshotProperties.rootDirLocation())) {
+                primaryFind = paths
+                        .filter(p -> p.getFileName().startsWith(".latest") && Files.isRegularFile(p))
+                        .findAny();
+            } catch (IOException e) {
+                throw new UncheckedIOException("Could not walk over latest snapshot dir at %s: %s".formatted(context.getProperties().snapshotsHomeDir(), e.getMessage()), e);
+            }
+        } else {
+            primaryFind = Optional.empty();
+        }
+
+        if (primaryFind.isPresent()) {
+            return primaryFind;
+        } else {
+            // find in top level of home dir (legacy)
+            try (Stream<Path> paths = Files.list(context.getProperties().snapshotsHomeDir())) {
+                return paths
+                        .filter(p -> p.getFileName().startsWith(".latest") && Files.isRegularFile(p))
+                        .findAny();
+            } catch (IOException e) {
+                throw new UncheckedIOException("Could not walk over snapshot dir at %s: %s".formatted(context.getProperties().snapshotsHomeDir(), e.getMessage()), e);
+            }
         }
     }
 
