@@ -112,7 +112,7 @@ public class Contexts {
         if (snapshotProperties != null) {
             try (Stream<Path> paths = Files.list(snapshotProperties.rootDirLocation())) {
                 primaryFind = paths
-                        .filter(p -> p.getFileName().startsWith(".latest") && Files.isRegularFile(p))
+                        .filter(p -> p.getFileName().toString().startsWith(".latest") && Files.isRegularFile(p))
                         .findAny();
             } catch (IOException e) {
                 throw new UncheckedIOException("Could not walk over latest snapshot dir at %s: %s".formatted(context.getProperties().snapshotsHomeDir(), e.getMessage()), e);
