@@ -36,7 +36,7 @@ public class FileSystemDiffService extends AbstractLogProducer {
      *
      * @param sourceRoot The root object to take a snapshot from.
      */
-    public FileSystemDiff computeDiff(Root sourceRoot, FileSystemState oldSystemState, List<String> excludeGlobPatterns) throws IOException {
+    public FileSystemDiff computeDiff(Root sourceRoot, FileSystemState oldSystemState, List<String> excludePatterns) throws IOException {
         ZonedDateTime start = ZonedDateTime.now();
         logTaskStart(Level.INFO, "Computing file differences", start, "at", sourceRoot.pathToRootDir());
 
@@ -44,7 +44,7 @@ public class FileSystemDiffService extends AbstractLogProducer {
                 sourceRoot,
                 oldSystemState,
                 fileSystemAccessor,
-                excludeGlobPatterns,
+                excludePatterns,
                 this::logFileVisitingError,
                 msg -> log(Level.DEBUG, msg)
         );
@@ -99,10 +99,10 @@ public class FileSystemDiffService extends AbstractLogProducer {
         }
 
         @Override
-        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
             // compute relative dir as we do not want to exclude on components includes in the source root
             Path relDir = sourceRoot.rootDirLocation().relativize(dir);
-            if (isExcluded(relDir)) {
+            if (isExcludedFileOrDir(relDir)) {
                 ignoredCount.getAndIncrement();
                 messageHandler.accept("IGNORED (including subtree): " + relDir);
                 return FileVisitResult.SKIP_SUBTREE;
@@ -114,7 +114,7 @@ public class FileSystemDiffService extends AbstractLogProducer {
         public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
             Path currentNewPath = sourceRoot.rootDirLocation().relativize(file);
 
-            if (isExcluded(currentNewPath)) {
+            if (isExcludedFileOrDir(currentNewPath)) {
                 ignoredCount.getAndIncrement();
                 messageHandler.accept("IGNORED: " + currentNewPath);
             } else {
@@ -141,8 +141,8 @@ public class FileSystemDiffService extends AbstractLogProducer {
             return FileVisitResult.CONTINUE;
         }
 
-        private boolean isExcluded(Path path) {
-            return ignoreFilters.stream().anyMatch(matcher -> matcher.matches(path));
+        private boolean isExcludedFileOrDir(Path fileOrDir) {
+            return ignoreFilters.stream().anyMatch(filter -> filter.matches(fileOrDir));
         }
 
         private FileChangeState determineChange(
@@ -223,8 +223,8 @@ public class FileSystemDiffService extends AbstractLogProducer {
                 return FileSystemAccessor.getGlobPathMatcher(pattern)::matches;
             } else {
                 return path -> {
-                    for (Path elem : path) {
-                        if (elem.toString().equals(pattern)) {
+                    for (Path value : path) {
+                        if (value.getFileName().toString().equals(pattern)) {
                             return true;
                         }
                     }

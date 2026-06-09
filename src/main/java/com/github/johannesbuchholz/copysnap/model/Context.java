@@ -68,7 +68,7 @@ public class Context extends AbstractLogProducer {
 
             FileSystemDiffService fileSystemDiffService = new FileSystemDiffService(fsa);
             logConsumers.forEach(fileSystemDiffService::addConsumer);
-            FileSystemDiff fileSystemDiff = fileSystemDiffService.computeDiff(properties.source(), latest, properties.ignorePathGlobPatterns());
+            FileSystemDiff fileSystemDiff = fileSystemDiffService.computeDiff(properties.source(), latest, properties.ignorePatterns());
 
             FileSystemDiff.Actions copyActions;
             if (createPlainCopiesOnly) {

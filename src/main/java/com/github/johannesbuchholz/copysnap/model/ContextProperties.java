@@ -13,7 +13,7 @@ record ContextProperties(
         Root source,
         Path snapshotsHomeDir,
         ZonedDateTime created,
-        List<String> ignorePathGlobPatterns,
+        List<String> ignorePatterns,
         /* nullable */
         SnapshotProperties snapshotProperties
 ) {
@@ -55,7 +55,7 @@ record ContextProperties(
         properties.put(SOURCE_DIR_KEY, source.pathToRootDir().toString());
         properties.put(SNAPSHOTS_HOME_DIR_KEY, snapshotsHomeDir.toString());
         properties.put(CREATED_KEY, TimeUtils.asString(created));
-        properties.put(IGNORE_KEY, String.join(IGNORE_PATTERN_DELIMITER, ignorePathGlobPatterns));
+        properties.put(IGNORE_KEY, String.join(IGNORE_PATTERN_DELIMITER, ignorePatterns));
         if(snapshotProperties != null) {
             properties.putAll(snapshotProperties.toProperties());
         }
@@ -70,12 +70,12 @@ record ContextProperties(
                 ignore : %s
                 latest snapshot
                 %s""".formatted(source.pathToRootDir(), snapshotsHomeDir, TimeUtils.asString(created),
-                ignorePathGlobPatterns.isEmpty() ? "None" : String.join(IGNORE_PATTERN_DELIMITER, ignorePathGlobPatterns),
+                ignorePatterns.isEmpty() ? "None" : String.join(IGNORE_PATTERN_DELIMITER, ignorePatterns),
                 snapshotProperties == null ? "none".indent(4).stripTrailing() : snapshotProperties.toDisplayString().indent(4).stripTrailing());
     }
 
     public ContextProperties withSnapshotProperties(SnapshotProperties snapshotProperties) {
-        return new ContextProperties(source, snapshotsHomeDir, created, ignorePathGlobPatterns, snapshotProperties);
+        return new ContextProperties(source, snapshotsHomeDir, created, ignorePatterns, snapshotProperties);
     }
 
     record SnapshotProperties(Path rootDirLocation, ZonedDateTime created, int fileCount) {
