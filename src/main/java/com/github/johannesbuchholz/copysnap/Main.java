@@ -181,7 +181,9 @@ public class Main {
         Context context = contextOpt.get();
         context.addConsumer(CONSOLE_PRINTER);
 
-        context = context.solidify();
+        context = context
+                .loadLatestSnapshot()  // loads fss is only used to transport it to new dir when writing this context
+                .solidify();
         Contexts.write(context);
 
         setAsCurrentContext(context);

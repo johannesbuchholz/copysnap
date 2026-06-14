@@ -11,6 +11,7 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Stream;
@@ -93,15 +94,9 @@ public class Contexts {
 
         FileSystemState latest = context.getLatestFileSystemState();
         if (latest != null) {
-            ContextProperties.SnapshotProperties snapshotProperties = properties.snapshotProperties();
-            if (snapshotProperties != null) {
-                Path latestStateFileInSnapshotHome = snapshotProperties.rootDirLocation().resolve(".latest.db");
-                FileSystemStates.write(latest, latestStateFileInSnapshotHome);
-            } else {
-                // fallback: write at home
-                Path latestStateFileHome = properties.snapshotsHomeDir().resolve(".latest.bak.db");
-                FileSystemStates.write(latest, latestStateFileHome);
-            }
+            ContextProperties.SnapshotProperties snapshotProperties = Objects.requireNonNull(properties.snapshotProperties(), "Snapshot properties is null while latest snapshot exists");
+            Path latestStateFileInSnapshotHome = snapshotProperties.rootDirLocation().resolve(".latest.db");
+            FileSystemStates.write(latest, latestStateFileInSnapshotHome);
         }
     }
 
