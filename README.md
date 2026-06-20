@@ -1,29 +1,32 @@
-# copysnap
+# CopySnap
 
-CopySnap is a lightweight command line tool for creating incremental backup snapshots of a target directory similar to macOS 'timemachine'.
+CopySnap is a lightweight command-line tool for creating incremental backup snapshots of a target directory, similar to macOS Time Machine.
 
-Snapshots are computed based on last modified date and actual file contents. Currently, copysnap only supports copying files to a locally available drive.
+Snapshots are computed based on the last modified date and actual file contents. Currently, CopySnap only supports copying files to a locally available drive.
 
-## Build
 
-Copysnap is built using [mvn](https://maven.apache.org/index.html). Building is only tested on linux (ubuntu) systems. Others might work as well.
+## Installation
 
-Build, test and package the project with the `package` goal.
+Run the provided `./install.sh` like this
+```shell
+sh install.sh <version>
+```
+
+You must provide a version available on the [release page](https://github.com/johannesbuchholz/copysnap/releases).
+Versions must be specified in the format `1.2.3`.
+To install a different version, simply rerun the script with the desired version.
+
+## Build from source
+
+Copysnap is built using [mvn](https://maven.apache.org/index.html).
+
+Clone this repository and then build, test, and package the project using the Maven `package` goal:
 ```shell
 mvn clean package
 ```
 
-This also runs unit tests creating temporary files in your tmp folder.
-
-
-## Usage
-
-Currently, there are no pre-built releases available. You need to [build](#build) the project first.
-
-Copysnap is released as a java jar compiled with `java 21`. 
-
-You may run copysnap like this:
-
+This also runs unit tests, which create temporary files in your system's temporary directory.
+The resulting `.jar` file `target/copysnap-<version>.jar` can then be run using
 ```shell
-java -jar /path/to/copysnap/copysnap-X.X.X.jar
+java -jar target/copysnap-<version>.jar
 ```
