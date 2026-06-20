@@ -8,6 +8,7 @@ on:
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -28,27 +29,17 @@ jobs:
       - name: Find JAR file
         id: find_jar
         run: |
-          JAR_PATH=$(find target -maxdepth 1 -name "${{ github.event.repository.name }}-*.jar" | head -n 1)
-          JAR_FILE=$(basename "$JAR_PATH")
-          echo "jar_file=$JAR_FILE" >> $GITHUB_OUTPUT
+          JAR_PATH=$(find target -maxdepth 1 -type f -name "*.jar" ! -name "*sources*" | head -n 1)
+          if [ -z "$JAR_PATH" ]; then
+            echo "No JAR file found in target/"
+            exit 1
+          fi
+          echo "jar_file=$(basename "$JAR_PATH")" >> $GITHUB_OUTPUT
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: target/${{ steps.find_jar.outputs.jar_file }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref_name }}
-          release_name: Release ${{ github.ref_name }}
-          draft: false
-          prerelease: false
-
-      - name: Upload JAR to Release
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: target/${{ steps.find_jar.outputs.jar_file }}
-          asset_name: ${{ steps.find_jar.outputs.jar_file }}
-          asset_content_type: application/java-archive
