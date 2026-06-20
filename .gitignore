@@ -2,3 +2,5 @@
 /.idea/
 /target/
 /dependency-reduced-pom.xml
+/copysnap.iml
+/pom.xml.versionsBackup
