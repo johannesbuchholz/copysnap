@@ -6,12 +6,10 @@
 
     <groupId>com.github.johannesbuchholz</groupId>
     <artifactId>copysnap</artifactId>
-    <version>0.21.0</version>
+    <version>0.21.1-5-465ad0ad-SNAPSHOT</version>
     <description>Command line tool to create incremental snapshots of filesystems.</description>
 
     <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -45,10 +43,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version>
+                <version>3.14.1</version>
                 <configuration>
-                    <source>${maven.compiler.source}</source>
-                    <target>${maven.compiler.target}</target>
+                    <release>21</release>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>io.github.johannesbuchholz</groupId>

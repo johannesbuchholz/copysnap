@@ -17,7 +17,8 @@ get_version() {
   minor_regex="^(feat).*:"
   patch_regex="^(fix|perf).*:"
 
-  previous_version=$(git describe | cut -d "-" -f1)
+  describe=$(git describe --tags --abbrev=0 | cut -d "-" -f1)
+  previous_version=${describe#v}
   commit_offset=$(git describe | cut -d "-" -f2)
 
   major=$(echo "${previous_version}" | cut -d "." -f1)
@@ -75,7 +76,7 @@ if [[ ${commit} ]]; then
   git add pom.xml
   git commit -m "chore: Release ${version}"
   if [[ ${tag} ]]; then
-    git tag -a "${version}" -m "Release ${version}"
+    git tag -a "v${version}" -m "Release ${version}"
   fi
 else
   echo "Dry run. Use option -c to commit changes."
