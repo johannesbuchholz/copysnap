@@ -23,6 +23,11 @@ if [ $# -ne 1 ]; then
     usage
 fi
 
+if ! command -v java >/dev/null 2>&1; then
+    echo "Error: Java is not installed or not in PATH"
+    exit 1
+fi
+
 VERSION="${1#v}"
 
 WRAPPER_PATH="$BIN_DIR/copysnap"
@@ -38,9 +43,10 @@ TMP_FILE="$(mktemp)"
 echo "Installing copysnap version $VERSION..."
 echo "Downloading $JAR_NAME..."
 
-wget -O "$TMP_FILE" "$DOWNLOAD_URL" || {
+wget --quiet --show-progress -O "$TMP_FILE" "$DOWNLOAD_URL" || {
     echo "Error: download failed"
     echo "URL: $DOWNLOAD_URL"
+    echo "Does version $VERSION exists at https://github.com/johannesbuchholz/copysnap/releases?"
     rm -f "$TMP_FILE"
     exit 1
 }
@@ -62,3 +68,10 @@ chmod +x "$WRAPPER_PATH"
 
 echo "Installation complete!"
 echo "copysnap installed at: $WRAPPER_PATH"
+
+if ! echo "$PATH" | grep -q "$BIN_DIR"; then
+    echo ""
+    echo "WARNING: $BIN_DIR is not in your PATH"
+    echo "Add this to your shell config:"
+    echo "  export PATH=\"\$HOME/.local/bin:\$PATH\""
+fi
